@@ -1,0 +1,68 @@
+---
+title: "Imports and Exports of India: Make in India movement (Dashboard-5)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(dplyr)
+library(readr)
+
+countries = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\country_codes.csv")
+
+dataset_df = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\exports and imports of india(1997-2022) - exports and imports.csv")
+dataset_df <- data.frame(tolower(dataset_df$Country), dataset_df$Export, dataset_df$Import, dataset_df$Total_Trade, dataset_df$Trade_Balance, dataset_df$Year_start, dataset_df$Year_end)
+
+countries <- data.frame(tolower(countries$Country), countries$Code)
+
+dataset_df <- inner_join(dataset_df, countries, by = c("tolower.dataset_df.Country." = "tolower.countries.Country."))
+
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==97]<-1997
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==98]<-1998
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==99]<-1999
+dataset_df <- subset(dataset_df, select = -c(dataset_df.Year_end))
+colnames(dataset_df)[which(names(dataset_df)=="tolower.dataset_df.Country.")] <- "Country"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Year_start")] <- "Year"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Export")] <- "Export"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Import")] <- "Import"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Total_Trade")] <- "Total_Trade"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Trade_Balance")] <- "Trade_Balance"
+dataset_df <- na.omit(dataset_df)
+df3 <- dataset_df[dataset_df$Year < 2014,]
+df4 <- dataset_df[dataset_df$Year > 2014,]
+temp = aggregate(cbind(df3$Total_Trade, df3$Trade_Balance), by = list(df3$Country), FUN = sum)
+output <- data.frame(temp[order(-temp$V1),][1:10,])
+temp1 = aggregate(cbind(df4$Total_Trade, df4$Trade_Balance), by = list(df4$Country), FUN = sum)
+output1 <- data.frame(temp1[order(-temp1$V1),][1:10,])
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Relationship with Top 10 Trading Partners (Before 2014)
+
+```{r}
+fig <- plot_ly(output, x = ~output$Group.1, y = ~output$V2)%>%
+  config(displayModeBar = FALSE)
+fig <- fig%>% add_trace(type = 'bar', marker = list(color = c("green", "green", "red", "red", "red", "red", "green", "green", "green", "red"), line = list(color = "black", width = 1)))
+fig <- fig%>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)", range = c(-400000, 200000)))
+fig
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Relationship with Top 10 Trading Partners (After 2014)
+
+```{r}
+fig1 <- plot_ly(output1, x = ~output1$Group.1, y = ~output1$V2)%>%
+  config(displayModeBar = FALSE)
+fig1 <- fig1%>% add_trace(type = 'bar', marker = list(color = c("red", "green", "green", "red", "red", "red", "red", "red", "red", "red"), line = list(color = "black", width = 1)))
+fig1 <- fig1%>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)", range = c(-400000, 200000)))
+fig1
+```
+

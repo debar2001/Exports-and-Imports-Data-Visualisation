@@ -1,0 +1,92 @@
+---
+title: "Imports and Exports of India: Make in India movement (Dashboard-4)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(dplyr)
+library(readr)
+
+countries = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\country_codes.csv")
+
+dataset_df = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\exports and imports of india(1997-2022) - exports and imports.csv")
+dataset_df <- data.frame(tolower(dataset_df$Country), dataset_df$Export, dataset_df$Import, dataset_df$Total_Trade, dataset_df$Trade_Balance, dataset_df$Year_start, dataset_df$Year_end)
+
+countries <- data.frame(tolower(countries$Country), countries$Code)
+
+dataset_df <- inner_join(dataset_df, countries, by = c("tolower.dataset_df.Country." = "tolower.countries.Country."))
+
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==97]<-1997
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==98]<-1998
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==99]<-1999
+dataset_df <- subset(dataset_df, select = -c(dataset_df.Year_end))
+colnames(dataset_df)[which(names(dataset_df)=="tolower.dataset_df.Country.")] <- "Country"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Year_start")] <- "Year"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Export")] <- "Export"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Import")] <- "Import"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Total_Trade")] <- "Total_Trade"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Trade_Balance")] <- "Trade_Balance"
+dataset_df <- na.omit(dataset_df)
+df3 <- dataset_df[dataset_df$Year < 2014,]
+df4 <- dataset_df[dataset_df$Year > 2014,]
+temp2 = aggregate(df3$Import, by = list(df3$Country), FUN = sum)
+output2 <- data.frame(temp2[order(-temp2$x),][1:10,])
+temp3 = aggregate(df4$Import, by = list(df4$Country), FUN = sum)
+output3 <- data.frame(temp3[order(-temp3$x),][1:10,])
+temp4 = aggregate(df3$Total_Trade, by = list(df3$Country), FUN = sum)
+output4 <- data.frame(temp4[order(-temp4$x),][1:10,])
+temp5 = aggregate(df4$Total_Trade, by = list(df4$Country), FUN = sum)
+output5 <- data.frame(temp5[order(-temp5$x),][1:10,])
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Top 10 Import Partners of India (Before 2014)
+
+```{r}
+fig <- plot_ly(output2, x = ~output2$Group.1, y = ~output2$x)%>%
+  config(displayModeBar = FALSE)
+fig <- fig %>% add_trace(type = 'bar',marker = list(color = "orange", line = list(color = "black", width = 1)))
+fig <- fig %>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)"))
+fig
+```
+
+### Top 10 Import Partners of India (After 2014)
+
+```{r}
+fig1 <- plot_ly(output3, x = ~output3$Group.1, y = ~output3$x)%>%
+  config(displayModeBar = FALSE)
+fig1 <- fig1 %>% add_trace(type = 'bar',marker = list(color = "orange", line = list(color = "black", width = 1)))
+fig1 <- fig1 %>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)"))
+fig1
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Top 10 Trading Partners of India (Before 2014)
+
+```{r}
+fig2 <- plot_ly(output4, x = ~output4$Group.1, y = ~output4$x)%>%
+  config(displayModeBar = FALSE)
+fig2 <- fig2 %>% add_trace(type = 'bar',marker = list(color = "#800080", line = list(color = "black", width = 1)))
+fig2 <- fig2 %>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)"))
+fig2
+```
+
+### Top 10 Trading Partners of India (After 2014)
+
+```{r}
+fig3 <- plot_ly(output5, x = ~output5$Group.1, y = ~output5$x)%>%
+  config(displayModeBar = FALSE)
+fig3 <- fig3 %>% add_trace(type = 'bar',marker = list(color = "#800080", line = list(color = "black", width = 1)))
+fig3 <- fig3 %>% layout(xaxis = list(title = "Country"), yaxis = list(title = "USD (Millions)"))
+fig3
+```
+

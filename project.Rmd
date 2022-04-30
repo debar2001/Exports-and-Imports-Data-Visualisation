@@ -1,0 +1,78 @@
+---
+title: "Imports and Exports of India: Make in India movement (Dashboard-1)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(dplyr)
+library(readr)
+library(base)
+
+countries = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\country_codes.csv")
+
+dataset_df = read_csv("C:\\Users\\Debargha Guha Neogi\\Desktop\\Winter Sem 2021-22\\CSE3020-DV\\DV Project\\exports and imports of india(1997-2022) - exports and imports.csv")
+dataset_df <- data.frame(tolower(dataset_df$Country), dataset_df$Export, dataset_df$Import, dataset_df$Total_Trade, dataset_df$Trade_Balance, dataset_df$Year_start, dataset_df$Year_end)
+
+countries <- data.frame(tolower(countries$Country), countries$Code)
+
+dataset_df <- inner_join(dataset_df, countries, by = c("tolower.dataset_df.Country." = "tolower.countries.Country."))
+
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==97]<-1997
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==98]<-1998
+dataset_df$dataset_df.Year_start[dataset_df$dataset_df.Year_start==99]<-1999
+dataset_df <- subset(dataset_df, select = -c(dataset_df.Year_end, tolower.dataset_df.Country.))
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Year_start")] <- "Year"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Export")] <- "Export"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Import")] <- "Import"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Total_Trade")] <- "Total_Trade"
+colnames(dataset_df)[which(names(dataset_df)=="dataset_df.Trade_Balance")] <- "Trade_Balance"
+dataset_df <- na.omit(dataset_df)
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Choropleth for Export Data
+
+```{r}
+export_graph = plot_geo(dataset_df, 
+                        locationmode = 'ISO-3',
+                        frame = ~Year)%>%
+  add_trace(locations = ~countries.Code,
+            z = ~Export,
+            zmin = 0,
+            zmax = 56000,
+            color = ~Export)%>%
+  layout(geo = list(scope = 'world'))%>%
+  config(displayModeBar = FALSE)%>%
+  colorbar(tickprefix = '$ ', ticksuffix = ' million')
+export_graph
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Choropleth for Import Data
+
+```{r}
+import_graph = plot_geo(dataset_df, 
+                        locationmode = 'ISO-3',
+                        frame = ~Year)%>%
+  add_trace(locations = ~countries.Code,
+            z = ~Import,
+            zmin = 0,
+            zmax = 56000,
+            color = ~Import)%>%
+  layout(geo = list(scope = 'world'))%>%
+  config(displayModeBar = FALSE)%>%
+  colorbar(tickprefix = '$ ', ticksuffix = ' million')
+import_graph
+```
+
+
+
